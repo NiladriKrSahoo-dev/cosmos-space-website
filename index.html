@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>COSMOS — Exploring the Universe</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-deep:      #04060f;
+      --bg-mid:       #080c1a;
+      --glass-bg:     rgba(255,255,255,0.04);
+      --glass-border: rgba(255,255,255,0.10);
+      --accent:       #a8c5da;
+      --text-primary: rgba(255,255,255,0.92);
+      --text-secondary: rgba(255,255,255,0.52);
+      --text-muted:   rgba(255,255,255,0.28);
+      --nebula-blue:   rgba(56,112,180,0.18);
+      --nebula-purple: rgba(120,60,160,0.14);
+      --nebula-teal:   rgba(30,140,140,0.12);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 400;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* ── STARFIELD CANVAS ── */
+    #canvas-bg {
+      position: fixed; inset: 0;
+      z-index: 0; pointer-events: none;
+    }
+
+    /* ── NEBULA ORBS ── */
+    .nebula {
+      position: fixed; border-radius: 50%;
+      filter: blur(90px); pointer-events: none; z-index: 1;
+      animation: nebula-drift 20s ease-in-out infinite alternate;
+    }
+    .nebula-1 { width:600px;height:600px;top:-150px;left:-100px;background:var(--nebula-blue); }
+    .nebula-2 { width:500px;height:500px;top:40%;right:-120px;background:var(--nebula-purple);animation-delay:-7s; }
+    .nebula-3 { width:400px;height:400px;bottom:10%;left:20%;background:var(--nebula-teal);animation-delay:-14s; }
+    @keyframes nebula-drift {
+      from { transform:translate(0,0) scale(1); }
+      to   { transform:translate(30px,20px) scale(1.05); }
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative; z-index: 5;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 60px 40px 80px;
+    }
+    .hero-eyebrow {
+      font-size: 0.72rem; font-weight: 500;
+      letter-spacing: 6px; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 24px;
+    }
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(3.5rem, 8vw, 8rem);
+      font-weight: 300; line-height: 1; letter-spacing: -1px;
+      margin-bottom: 8px;
+    }
+    .hero-title em { font-style: italic; color: var(--accent); }
+    .hero-subtitle {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.1rem, 2.5vw, 1.7rem);
+      font-weight: 300; font-style: italic;
+      color: var(--text-secondary); margin-bottom: 50px;
+    }
+    .hero-cta {
+      display: flex; gap: 16px;
+      flex-wrap: wrap; justify-content: center;
+    }
+    .btn-primary {
+      padding: 14px 36px;
+      background: rgba(168,197,218,0.12);
+      border: 1px solid rgba(168,197,218,0.35);
+      color: var(--accent);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.78rem; font-weight: 600;
+      letter-spacing: 3px; text-transform: uppercase;
+      text-decoration: none;
+      backdrop-filter: blur(12px);
+      transition: all 0.3s; cursor: pointer;
+    }
+    .btn-primary:hover {
+      background: rgba(168,197,218,0.22);
+      border-color: rgba(168,197,218,0.6);
+      transform: translateY(-2px);
+    }
+    .btn-ghost {
+      padding: 14px 36px; background: transparent;
+      border: 1px solid var(--glass-border);
+      color: var(--text-secondary);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.78rem; font-weight: 500;
+      letter-spacing: 3px; text-transform: uppercase;
+      text-decoration: none; transition: all 0.3s; cursor: pointer;
+    }
+    .btn-ghost:hover { border-color: rgba(255,255,255,0.3); color: var(--text-primary); }
+    .hero-scroll {
+      position: absolute; bottom: 40px; left: 50%;
+      transform: translateX(-50%);
+    }
+    .scroll-line {
+      width: 1px; height: 60px;
+      background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.3));
+      margin: 0 auto 10px;
+      animation: scroll-pulse 2s ease-in-out infinite;
+    }
+    @keyframes scroll-pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+    .scroll-label {
+      font-size: 0.62rem; letter-spacing: 4px;
+      text-transform: uppercase; color: var(--text-muted);
+    }
+
+    /* ── SECTION HELPERS ── */
+    section {
+      position: relative; z-index: 5;
+      max-width: 1200px; margin: 0 auto; padding: 100px 60px;
+    }
+    .section-header { margin-bottom: 60px; }
+    .section-label {
+      font-size: 0.7rem; font-weight: 500;
+      letter-spacing: 5px; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 16px;
+    }
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem,4vw,3.5rem);
+      font-weight: 300; line-height: 1.15;
+    }
+    .section-title em { font-style: italic; color: var(--accent); }
+    .section-divider {
+      width: 60px; height: 1px;
+      background: linear-gradient(to right, var(--accent), transparent);
+      margin-top: 24px;
+    }
+    .hr { height:1px; background:var(--glass-border); max-width:1200px; margin:0 auto; }
+
+    /* ── STATS ROW ── */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(4,1fr);
+      gap: 1px; background: var(--glass-border);
+      border: 1px solid var(--glass-border);
+    }
+    .stat-item {
+      background: var(--bg-mid); padding: 48px 36px;
+      text-align: center; backdrop-filter: blur(10px);
+      transition: background 0.3s;
+    }
+    .stat-item:hover { background: rgba(12,18,36,0.95); }
+    .stat-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.2rem,4vw,3.8rem);
+      font-weight: 300; color: var(--text-primary);
+      line-height: 1; display: block;
+    }
+    .stat-unit { font-size: 1rem; color: var(--accent); }
+    .stat-label {
+      font-size: 0.68rem; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--text-muted);
+      margin-top: 10px; display: block;
+    }
+
+    /* ── PHENOMENA ── */
+    .phenomena-grid {
+      display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr));
+      gap: 1px; background: var(--glass-border);
+      border: 1px solid var(--glass-border);
+    }
+    .phenomena-card {
+      background: rgba(8,12,26,0.85);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      padding: 48px 40px; position: relative;
+      overflow: hidden; transition: background 0.35s; cursor: default;
+    }
+    .phenomena-card::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg,rgba(168,197,218,0.06) 0%,transparent 60%);
+      opacity: 0; transition: opacity 0.35s;
+    }
+    .phenomena-card:hover { background: rgba(14,20,42,0.9); }
+    .phenomena-card:hover::before { opacity: 1; }
+    .card-icon { font-size: 1.8rem; margin-bottom: 28px; display: block; }
+    .card-num {
+      position: absolute; top: 28px; right: 36px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 3.5rem; font-weight: 300;
+      color: rgba(255,255,255,0.04); line-height: 1;
+    }
+    .card-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem; font-weight: 400;
+      color: var(--text-primary); margin-bottom: 14px; letter-spacing: 1px;
+    }
+    .card-body {
+      font-size: 0.92rem; line-height: 1.8;
+      color: var(--text-secondary); font-weight: 300;
+    }
+    .card-tag {
+      display: inline-block; margin-top: 24px;
+      font-size: 0.65rem; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--accent);
+      border-top: 1px solid rgba(168,197,218,0.2);
+      padding-top: 14px; width: 100%;
+    }
+
+    /* ── FEATURE BLOCK (solar system) ── */
+    .feature-block {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 60px; align-items: center;
+      max-width: 1200px; margin: 0 auto;
+      padding: 140px 60px; position: relative; z-index: 5;
+    }
+    .orbit-system {
+      aspect-ratio: 1; position: relative;
+      display: flex; align-items: center; justify-content: center;
+      max-width: 380px;
+    }
+    .orb-center {
+      position: absolute; width: 70px; height: 70px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%,#fff8e1,#f4a820 50%,#b35a00);
+      box-shadow: 0 0 60px rgba(244,168,32,0.3);
+      animation: sun-breathe 4s ease-in-out infinite alternate; z-index: 2;
+    }
+    @keyframes sun-breathe {
+      from { box-shadow: 0 0 40px rgba(244,168,32,0.25); }
+      to   { box-shadow: 0 0 80px rgba(244,168,32,0.4); }
+    }
+    .orb-ring {
+      position: absolute; border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.07);
+      display: flex; align-items: flex-start; justify-content: center;
+      animation: ring-spin linear infinite;
+    }
+    .orb-ring:nth-child(2){width:150px;height:150px;animation-duration:8s;}
+    .orb-ring:nth-child(3){width:230px;height:230px;animation-duration:14s;animation-direction:reverse;}
+    .orb-ring:nth-child(4){width:320px;height:320px;animation-duration:22s;}
+    @keyframes ring-spin {from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+    .orb-planet {
+      position: absolute; top: -7px;
+      border-radius: 50%; transform: translateX(-50%);
+    }
+    .p1{width:13px;height:13px;background:radial-gradient(circle at 30% 30%,#c0c0c0,#606060);}
+    .p2{width:18px;height:18px;background:radial-gradient(circle at 30% 30%,#c87941,#7b3a10);top:-9px;}
+    .p3{width:22px;height:22px;background:radial-gradient(circle at 30% 30%,#8ec5e6,#2a6592);top:-11px;}
+    .feature-quote {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.05rem; font-style: italic;
+      color: var(--text-secondary);
+      border-left: 2px solid rgba(168,197,218,0.3);
+      padding-left: 20px; margin: 28px 0; line-height: 1.7;
+    }
+    .feature-list { list-style: none; margin-top: 28px; }
+    .feature-list li {
+      font-size: 0.88rem; color: var(--text-secondary);
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      display: flex; align-items: flex-start;
+      gap: 14px; line-height: 1.6;
+    }
+    .feature-list li::before {
+      content: ''; width: 18px; height: 1px;
+      background: var(--accent); flex-shrink: 0; margin-top: 10px;
+    }
+
+    /* ── FACTS MOSAIC ── */
+    .facts-mosaic {
+      display: grid; grid-template-columns: 2fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 1px; background: var(--glass-border);
+      border: 1px solid var(--glass-border);
+    }
+    .fact-tile {
+      background: rgba(8,12,26,0.85);
+      backdrop-filter: blur(16px);
+      padding: 48px 44px; position: relative; overflow: hidden;
+    }
+    .fact-tile:first-child { grid-row: span 2; background: rgba(56,112,180,0.06); }
+    .fact-tile-label {
+      font-size: 0.65rem; letter-spacing: 4px;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 18px;
+    }
+    .fact-tile-heading {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem; font-weight: 400;
+      color: var(--text-primary); line-height: 1.3; margin-bottom: 16px;
+    }
+    .fact-tile-body {
+      font-size: 0.9rem; line-height: 1.85;
+      color: var(--text-secondary); font-weight: 300;
+    }
+    .fact-big-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(3rem,6vw,5.5rem); font-weight: 300;
+      color: rgba(168,197,218,0.08);
+      position: absolute; bottom: 20px; right: 30px; line-height: 1;
+    }
+
+    /* ── QUIZ ── */
+    .quiz-wrap {
+      position: relative; z-index: 5;
+      max-width: 1200px; margin: 0 auto; padding: 0 60px 100px;
+    }
+    .quiz-glass {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      padding: 70px 80px;
+    }
+    .quiz-inner { max-width: 600px; }
+    .quiz-question {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem; font-weight: 400;
+      color: var(--text-primary); line-height: 1.4; margin: 28px 0 36px;
+    }
+    .quiz-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+    .quiz-opt {
+      padding: 16px 24px; background: transparent;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-secondary);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.9rem; letter-spacing: 1px;
+      text-align: left; cursor: pointer; transition: all 0.25s;
+    }
+    .quiz-opt:hover { border-color:rgba(168,197,218,0.4);color:var(--text-primary);background:rgba(168,197,218,0.05); }
+    .quiz-opt.correct { border-color:rgba(120,200,140,0.6);background:rgba(120,200,140,0.07);color:#8ec890; }
+    .quiz-opt.wrong   { border-color:rgba(200,100,100,0.5);background:rgba(200,100,100,0.05);color:#c87878; }
+    .quiz-feedback {
+      font-size: 0.82rem; letter-spacing: 2px;
+      text-transform: uppercase; min-height: 20px; color: var(--text-secondary);
+    }
+    .quiz-progress {
+      font-size: 0.68rem; letter-spacing: 4px;
+      text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative; z-index: 5;
+      border-top: 1px solid var(--glass-border);
+      background: rgba(4,6,15,0.5);
+      backdrop-filter: blur(10px);
+      padding: 60px;
+    }
+
+    .footer-top {
+      display: flex; align-items: center;
+      justify-content: space-between; flex-wrap: wrap; gap: 20px;
+      padding-bottom: 40px;
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .footer-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem; font-weight: 600;
+      letter-spacing: 6px; text-transform: uppercase;
+    }
+    .footer-logo span { color: var(--accent); }
+    .footer-links { display: flex; gap: 28px; list-style: none; }
+    .footer-links a {
+      font-size: 0.7rem; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--text-muted);
+      text-decoration: none; transition: color 0.3s;
+    }
+    .footer-links a:hover { color: var(--text-primary); }
+
+    /* love from india */
+    .footer-love {
+      text-align: center;
+      padding: 36px 0 28px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      font-style: italic;
+      color: var(--text-secondary);
+      letter-spacing: 1px;
+      border-bottom: 1px solid var(--glass-border);
+      margin-bottom: 36px;
+    }
+
+    /* credits + sources grid */
+    .footer-bottom {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+    }
+    .footer-col-label {
+      font-size: 0.62rem; letter-spacing: 5px;
+      text-transform: uppercase; color: var(--accent);
+      margin-bottom: 16px;
+    }
+    .footer-credit-text {
+      font-size: 0.88rem; color: var(--text-secondary);
+      line-height: 1.8;
+    }
+    .footer-credit-text a {
+      color: var(--accent); text-decoration: none;
+    }
+    .footer-credit-text a:hover { text-decoration: underline; }
+    .footer-contact {
+      margin-top: 20px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .footer-contact-label {
+      font-size: 0.62rem; letter-spacing: 4px;
+      text-transform: uppercase; color: var(--text-muted);
+    }
+    .footer-contact a {
+      font-size: 0.88rem; color: var(--accent);
+      text-decoration: none; letter-spacing: 0.5px;
+    }
+    .footer-contact a:hover { text-decoration: underline; }
+
+    .source-list { list-style: none; }
+    .source-list li {
+      font-size: 0.82rem; color: var(--text-secondary);
+      padding: 9px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      line-height: 1.6;
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .source-list li::before {
+      content: ''; width: 14px; height: 1px;
+      background: var(--accent); flex-shrink: 0; margin-top: 9px;
+    }
+    .source-list a {
+      color: var(--accent); text-decoration: none;
+    }
+    .source-list a:hover { text-decoration: underline; }
+
+    .footer-copy-line {
+      text-align: center; padding-top: 36px;
+      margin-top: 36px; border-top: 1px solid var(--glass-border);
+      font-size: 0.68rem; letter-spacing: 2px;
+      color: var(--text-muted);
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(22px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .reveal {
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .reveal.in-view { opacity:1; transform:translateY(0); }
+    .reveal-d1 { transition-delay: 0.1s; }
+    .reveal-d2 { transition-delay: 0.2s; }
+    .reveal-d3 { transition-delay: 0.3s; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width:900px) {
+      section, .feature-block, .quiz-wrap { padding: 60px 24px; }
+      .feature-block { grid-template-columns:1fr; }
+      .orbit-system { max-width:260px; margin:0 auto; }
+      .stats-row { grid-template-columns:repeat(2,1fr); }
+      .facts-mosaic { grid-template-columns:1fr; }
+      .fact-tile:first-child { grid-row:span 1; }
+      .quiz-glass { padding:40px 28px; }
+      footer { padding:40px 24px; }
+      .footer-top { flex-direction:column; align-items:flex-start; }
+      .footer-bottom { grid-template-columns:1fr; gap:40px; }
+      #rocket-wrap { right: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- STARFIELD -->
+<canvas id="canvas-bg"></canvas>
+
+<!-- NEBULA -->
+<div class="nebula nebula-1"></div>
+<div class="nebula nebula-2"></div>
+<div class="nebula nebula-3"></div>
+
+
+
+<!-- ════ HERO ════ -->
+<div class="hero">
+  <p class="hero-eyebrow">An observatory of the cosmos</p>
+  <h1 class="hero-title">Beyond the<br><em>Horizon</em></h1>
+  <p class="hero-subtitle">A journey through the architecture of the universe</p>
+
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    <p class="scroll-label">Scroll</p>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="hr"></div>
+<div style="position:relative;z-index:5;max-width:1200px;margin:0 auto;padding:0 60px;">
+  <div class="stats-row reveal">
+    <div class="stat-item">
+      <span class="stat-num">93<span class="stat-unit">B</span></span>
+      <span class="stat-label">Light-years, observable universe</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">2<span class="stat-unit">T</span></span>
+      <span class="stat-label">Estimated galaxies</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">13.8<span class="stat-unit">B</span></span>
+      <span class="stat-label">Years since the Big Bang</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">299<span class="stat-unit">K</span></span>
+      <span class="stat-label">Speed of light (km/s)</span>
+    </div>
+  </div>
+</div>
+<div class="hr"></div>
+
+<!-- PHENOMENA -->
+<section id="phenomena">
+  <div class="section-header reveal">
+    <p class="section-label">Cosmic Phenomena</p>
+    <h2 class="section-title">Wonders of the<br><em>Observable Universe</em></h2>
+    <div class="section-divider"></div>
+  </div>
+  <div class="phenomena-grid">
+    <div class="phenomena-card reveal reveal-d1">
+      <span class="card-icon">⚫</span><span class="card-num">01</span>
+      <h3 class="card-title">Black Holes</h3>
+      <p class="card-body">Regions of spacetime where gravity is so intense that nothing — not even light — has enough energy to escape. Formed from the remnants of massive stars, they warp the fabric of space and time in ways that still challenge our deepest physical theories.</p>
+      <span class="card-tag">Astrophysics — Extreme Gravity</span>
+    </div>
+    <div class="phenomena-card reveal reveal-d2">
+      <span class="card-icon">💫</span><span class="card-num">02</span>
+      <h3 class="card-title">Neutron Stars</h3>
+      <p class="card-body">Among the densest objects in the universe, neutron stars are the collapsed cores of giant stars. A teaspoon of their material weighs approximately one billion tonnes. Some, called pulsars, emit radiation beams of extraordinary precision.</p>
+      <span class="card-tag">Stellar Evolution — Dense Matter</span>
+    </div>
+    <div class="phenomena-card reveal reveal-d3">
+      <span class="card-icon">🌌</span><span class="card-num">03</span>
+      <h3 class="card-title">Dark Matter</h3>
+      <p class="card-body">Comprising approximately 27% of the universe, dark matter neither emits, absorbs, nor reflects light. Its existence is inferred through gravitational effects on visible matter, galaxy rotation curves, and the large-scale structure of the cosmos.</p>
+      <span class="card-tag">Cosmology — The Invisible Universe</span>
+    </div>
+    <div class="phenomena-card reveal reveal-d1">
+      <span class="card-icon">🌠</span><span class="card-num">04</span>
+      <h3 class="card-title">Supernovae</h3>
+      <p class="card-body">One of the most energetic explosions known, a supernova occurs when a massive star exhausts its fuel. For a brief period, it can outshine an entire galaxy, dispersing heavy elements that seed the formation of subsequent stars, planets, and life itself.</p>
+      <span class="card-tag">Stellar Physics — Nucleosynthesis</span>
+    </div>
+    <div class="phenomena-card reveal reveal-d2">
+      <span class="card-icon">🔭</span><span class="card-num">05</span>
+      <h3 class="card-title">Gravitational Waves</h3>
+      <p class="card-body">First predicted by Einstein in 1916 and directly detected in 2015, gravitational waves are ripples in spacetime generated by violent cosmic events — the merger of black holes and neutron stars billions of light-years away from Earth.</p>
+      <span class="card-tag">General Relativity — Spacetime</span>
+    </div>
+    <div class="phenomena-card reveal reveal-d3">
+      <span class="card-icon">☄️</span><span class="card-num">06</span>
+      <h3 class="card-title">Cosmic Inflation</h3>
+      <p class="card-body">The leading theory holds that the early universe underwent exponential expansion, growing by a factor of at least 10²⁶ in a fraction of a second. This inflation smoothed the cosmos and seeded the quantum fluctuations that became today's large-scale structure.</p>
+      <span class="card-tag">Cosmology — Early Universe</span>
+    </div>
+  </div>
+</section>
+
+<div class="hr"></div>
+
+<!-- SOLAR SYSTEM -->
+<div class="feature-block" id="solarsys">
+  <div class="reveal" style="display:flex;justify-content:center;">
+    <div class="orbit-system">
+      <div class="orb-center"></div>
+      <div class="orb-ring"><div class="orb-planet p1"></div></div>
+      <div class="orb-ring"><div class="orb-planet p2"></div></div>
+      <div class="orb-ring"><div class="orb-planet p3"></div></div>
+    </div>
+  </div>
+  <div class="reveal reveal-d2">
+    <p class="section-label">Our Solar System</p>
+    <h2 class="section-title">A Family of<br><em>Eight Worlds</em></h2>
+    <div class="section-divider"></div>
+    <p class="feature-quote">"The cosmos is within us. We are made of star stuff. We are a way for the universe to know itself." — Carl Sagan</p>
+    <ul class="feature-list">
+      <li>Mercury completes an orbit in just 88 Earth days, yet a single day lasts 59 Earth days</li>
+      <li>Jupiter's Great Red Spot is a persistent storm larger than Earth, active for over 400 years</li>
+      <li>Saturn's rings are extraordinarily thin — in places less than 10 metres deep — despite spanning 282,000 km</li>
+      <li>Neptune experiences wind speeds exceeding 2,100 km/h, the fastest recorded in the solar system</li>
+      <li>The Oort Cloud at the system's edge may contain trillions of cometary nuclei</li>
+    </ul>
+  </div>
+</div>
+
+<div class="hr"></div>
+
+<!-- DEEP SPACE -->
+<section id="facts">
+  <div class="section-header reveal">
+    <p class="section-label">Deep Space</p>
+    <h2 class="section-title">The Scale of<br><em>Everything</em></h2>
+    <div class="section-divider"></div>
+  </div>
+  <div class="facts-mosaic reveal">
+    <div class="fact-tile">
+      <p class="fact-tile-label">Scale & Distance</p>
+      <h3 class="fact-tile-heading">The light reaching your eyes from the Andromeda Galaxy left its source 2.5 million years ago</h3>
+      <p class="fact-tile-body">When you look up at the night sky, you are not seeing the universe as it is — you are seeing it as it was. Light from our nearest galactic neighbour departed when our ancestors were first crafting stone tools. The night sky is, in every sense, a time machine.</p>
+      <p class="fact-tile-body" style="margin-top:18px;">On the largest scales, the universe is composed of vast filaments of dark matter and galaxies interspersed with enormous voids hundreds of millions of light-years across — a structure known as the cosmic web.</p>
+      <div class="fact-big-num">2.5M</div>
+    </div>
+    <div class="fact-tile">
+      <p class="fact-tile-label">The Sun</p>
+      <h3 class="fact-tile-heading">1.3 million Earths could fit inside the Sun</h3>
+      <p class="fact-tile-body">Yet our Sun is a modest, mid-sequence star. The largest known star, UY Scuti, has a radius roughly 1,700 times that of the Sun — large enough to engulf the orbit of Jupiter.</p>
+    </div>
+    <div class="fact-tile">
+      <p class="fact-tile-label">Stars</p>
+      <h3 class="fact-tile-heading">More stars exist than grains of sand on all of Earth's beaches</h3>
+      <p class="fact-tile-body">Current estimates suggest 200 to 400 billion trillion stars in the observable universe — a number that genuinely defies human comprehension.</p>
+    </div>
+  </div>
+</section>
+
+
+
+<div class="hr"></div>
+
+<!-- FOOTER -->
+<footer>
+  <!-- love from India -->
+  <div class="footer-love">
+    Made with love from 🇮🇳
+  </div>
+
+  <!-- credits + sources -->
+  <div class="footer-bottom">
+
+    <div>
+      <p class="footer-col-label">Credits</p>
+      <p class="footer-credit-text">
+        Created by <a href="/cdn-cgi/l/email-protection#86e8efeae7e2f4eff5e7eee9e9b7b4b5b2b3b0c6e1ebe7efeaa8e5e9eb"><span class="__cf_email__" data-cfemail="7c1215101d180e150f1d1413134d4e4f48494a3c1b111d1510521f1311">[email&#160;protected]</span></a>
+        &amp; <strong style="color:var(--text-primary);">Claude AI</strong>
+        <br/>(Anthropic's Claude Sonnet 4.6)
+      </p>
+      <div class="footer-contact" style="margin-top:20px;flex-direction:column;align-items:flex-start;gap:6px;">
+        <span class="footer-contact-label">Contact Me</span>
+        <a href="https://www.instagram.com/_niladri.why" target="_blank" rel="noopener">
+          ↗ Instagram: @_niladri.why
+        </a>
+        <a href="/cdn-cgi/l/email-protection#ec8285808d889e859f8d848383dddedfd8d9daac8b818d8580c28f8381">
+          ↗ <span class="__cf_email__" data-cfemail="9af4f3f6fbfee8f3e9fbf2f5f5aba8a9aeafacdafdf7fbf3f6b4f9f5f7">[email&#160;protected]</span>
+        </a>
+      </div>
+    </div>
+
+    <div>
+      <p class="footer-col-label">Sources &amp; References</p>
+      <ul class="source-list">
+        <li><a href="https://www.nasa.gov" target="_blank" rel="noopener">NASA — National Aeronautics and Space Administration</a></li>
+        <li><a href="https://www.esa.int" target="_blank" rel="noopener">ESA — European Space Agency</a></li>
+        <li><a href="https://hubblesite.org" target="_blank" rel="noopener">HubbleSite — Hubble Space Telescope</a></li>
+        <li><a href="https://www.ligo.caltech.edu" target="_blank" rel="noopener">LIGO Scientific Collaboration — Gravitational Waves</a></li>
+        <li><a href="https://imagine.gsfc.nasa.gov" target="_blank" rel="noopener">NASA Goddard — Imagine the Universe</a></li>
+        <li><a href="https://www.space.com" target="_blank" rel="noopener">Space.com — Space Science & Astronomy</a></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <p class="footer-copy-line" style="font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:400;letter-spacing:2px;color:rgba(255,255,255,0.75);">© Space is awesome sauce. Please don't copy my work.</p>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+/* ═══════════════════════════════════════════════════
+   STARFIELD
+═══════════════════════════════════════════════════ */
+const canvas = document.getElementById('canvas-bg');
+const ctx    = canvas.getContext('2d');
+let stars    = [];
+function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+function initStars() {
+  stars = [];
+  for (let i = 0; i < 320; i++) {
+    stars.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 1.2 + 0.2,
+      a: Math.random(),
+      da: (Math.random() * 0.003 + 0.001) * (Math.random() < 0.5 ? 1 : -1),
+    });
+  }
+}
+function drawStars() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  stars.forEach(s => {
+    s.a = Math.max(0, Math.min(1, s.a + s.da));
+    if (s.a <= 0 || s.a >= 1) s.da *= -1;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${s.a * 0.65})`;
+    ctx.fill();
+  });
+  requestAnimationFrame(drawStars);
+}
+window.addEventListener('resize', () => { resizeCanvas(); initStars(); });
+resizeCanvas(); initStars(); drawStars();
+
+/* ═══════════════════════════════════════════════════
+   SCROLL REVEAL
+═══════════════════════════════════════════════════ */
+const revObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view'); });
+}, { threshold: 0.07 });
+document.querySelectorAll('.reveal').forEach(el => revObs.observe(el));
+
+/* ═══════════════════════════════════════════════════
+   QUIZ
+═══════════════════════════════════════════════════ */
+const questions = [
+  { q: "What is the estimated age of the observable universe?",
+    opts: ["4.5 billion years","13.8 billion years","100 billion years","27 million years"],
+    ans: "13.8 billion years" },
+  { q: "Gravitational waves were first directly detected in which year?",
+    opts: ["1990","2001","2015","2019"],
+    ans: "2015" },
+  { q: "Approximately what percentage of the universe is composed of dark matter?",
+    opts: ["5%","27%","68%","50%"],
+    ans: "27%" },
+  { q: "What is the term for a rapidly rotating neutron star that emits regular beams of radiation?",
+    opts: ["Quasar","Magnetar","Pulsar","White Dwarf"],
+    ans: "Pulsar" },
+  { q: "The Andromeda Galaxy is approximately how far from Earth?",
+    opts: ["200,000 light-years","2.5 million light-years","25 million light-years","100 billion light-years"],
+    ans: "2.5 million light-years" },
+];
+let qi = 0, answered = false;
+function loadQuiz() {
+  const q = questions[qi];
+  document.getElementById('quiz-progress').textContent = `Question ${qi + 1} of ${questions.length}`;
+  document.getElementById('quiz-q').textContent        = q.q;
+  document.getElementById('quiz-feedback').textContent = '';
+  answered = false;
+  const container = document.getElementById('quiz-options');
+  container.innerHTML = '';
+  q.opts.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-opt';
+    btn.textContent = opt;
+    btn.addEventListener('click', () => answerQuiz(opt, q.ans));
+    container.appendChild(btn);
+  });
+}
+function answerQuiz(chosen, correct) {
+  if (answered) return;
+  answered = true;
+  document.querySelectorAll('.quiz-opt').forEach(b => {
+    b.disabled = true;
+    if (b.textContent === correct) b.classList.add('correct');
+    else if (b.text
